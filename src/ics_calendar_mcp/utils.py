@@ -87,6 +87,14 @@ def format_event_short(event: Event, timezone: str = "Europe/Warsaw") -> dict:
     return result
 
 
+def _get_rrule_value(rule_dict: dict, key: str, default: Any = None) -> Any:
+    """Extract a value from RRULE dict, handling both list and scalar values."""
+    value = rule_dict.get(key, default)
+    if isinstance(value, list):
+        return value[0] if value else default
+    return value
+
+
 def format_recurring_event(event: Event, timezone: str = "Europe/Warsaw") -> dict:
     """Format a recurring event with its recurrence rule."""
     result = format_event(event, timezone)
@@ -94,9 +102,9 @@ def format_recurring_event(event: Event, timezone: str = "Europe/Warsaw") -> dic
     rrule = event.get("RRULE")
     if rrule:
         rule_dict = dict(rrule)
-        freq = rule_dict.get("FREQ", [None])[0]
-        interval = rule_dict.get("INTERVAL", [1])[0]
-        until = rule_dict.get("UNTIL", [None])[0]
+        freq = _get_rrule_value(rule_dict, "FREQ")
+        interval = _get_rrule_value(rule_dict, "INTERVAL", 1)
+        until = _get_rrule_value(rule_dict, "UNTIL")
         byday = rule_dict.get("BYDAY", [])
 
         result["recurrence"] = {
